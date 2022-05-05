@@ -1,8 +1,8 @@
 import sys
 import json
+from bs4 import BeautifulSoup
 from collections import defaultdict
-
-
+from urllib.request import urlopen
 
 class FrequencyCount:
     def __init__(self):
@@ -34,5 +34,19 @@ class FrequencyCount:
             
             # for the sake of simplisity, I will not take broken html into consideration,
             # but BeautifulSoup should be able to detect it.
+            
+            html = data["content"]
+            soup = BeautifulSoup(html, 'html.parser')
+            
+            for script in soup(["script", "style"]):
+                script.extract() 
+            text = soup.get_text()
+            # you need a tokenizer to parse the token
+            # after you parsed the token, count the frequencies
+            
+            
+            
+    def batchProcess(self):
+        pass
         
         
