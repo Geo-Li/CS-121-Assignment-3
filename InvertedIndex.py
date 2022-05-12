@@ -1,24 +1,51 @@
 import sys
 import json
 import os
-# import re
+import re
 
 from bs4 import BeautifulSoup
 from collections import defaultdict
 from sortedcontainers import SortedDict
 from nltk.stem.snowball import SnowballStemmer
 from nltk.tokenize import RegexpTokenizer
+
 # from nltk import word_tokenize, sent_tokenize fds
 
-MAX_INDEX_SIZE = 2500000 #About 2.5 MB
+MAX_INDEX_SIZE = 5000000 #About 5 MB
+
+HTML_WEIGHTS = {
+    "h1" : 7,
+    "h2" : 6,
+    "h3" : 5,
+    "h4" : 4,
+    "bold" : 3,
+    "title" : 20
+}
+
 
 def mergeDict(dict1, dict2) -> dict:
-    # result = {**dict1, **dict2} #MERGE SORT
-    intersect = dict1 & dict2
+    result = dict1 | dict2
+    intersect = set(dict1.keys() & dict2.keys())
     for key in intersect:
-        dict1[key] = dict1[key] + dict2[key]
+        if not dict1[key] is None:
+            # print(key)
+            result[key] = dict1.get(key).update(dict2[key])
 
-    return dict1
+    return result
+
+def mergeJSON(json1, json2) -> dict:
+    with open(json1) as file:
+        partialIndex = json.load(file)
+
+    with open(json2) as file:
+        loadedIndex = json.load(file)
+
+    for term in sorted(partialIndex.key()):
+        #Get the character from the index
+        char = term[0]
+
+    # Get dictionary for partialIndex
+    # partialIndexDict = partialIndex[]
 
 
 class InvertedIndex:
@@ -51,16 +78,6 @@ class InvertedIndex:
         self._argv = sys.argv
         # return sys.argv
 
-    # {
-    #     "freq" : 12313123,
-    #     "posting" : [             # posting is a list of postings (url mappings)
-    #         {
-    #             "docId" : 1,
-    #             "url" : "http://www.google.com"
-    #         }
-    #     ]
-    # }
-
     def processJSONFile(self, file):
         with open(file) as JsonFile:
             # data here will be a dictionary that contains the url, content, and the encoding of the file
@@ -76,7 +93,7 @@ class InvertedIndex:
 
             # print("The size of ivnerted_indexdict: " , sys.getsizeof(self._inverted_index_dict))
             if sys.getsizeof(self._inverted_index_dict) >= MAX_INDEX_SIZE:
-                print("Does it come here?")
+                # print("Does it come here?")
                 self.processRecorder()
 
 
@@ -90,11 +107,13 @@ class InvertedIndex:
         for content in soup.find_all('body'):
             for word in tokenizer.tokenize(content.get_text()):
                 word = stemmer.stem(word)
+                if not re.findall("[^\u0000-\u05C0\u2100-\u214F]+", word):
+                    if word not in self._inverted_index_dict.keys():
+                        self._inverted_index_dict[word] = defaultdict(int)
+                    self._inverted_index_dict[word][docID] += 1
+
                 # tokens = [idx for idx in tokens if not re.findall("[^\u0000-\u05C0\u2100-\u214F]+", idx)]  #Handle bad input
                 # print(tokens)
-                if word not in self._inverted_index_dict.keys():
-                    self._inverted_index_dict[word] = defaultdict(int)
-                self._inverted_index_dict[word][docID] += 1
 
         # tokens = nltk.word_tokenize(text)
         # tokens = tk.tokenize(text)
@@ -151,7 +170,7 @@ class InvertedIndex:
     def splitJSON(self) -> None:
         chunkSize = 1000
         for i in range(0, len(self._inverted_index_dict), chunkSize):
-            with open("Report/invertedIndex_" + str(i//chunkSize) + '.json', 'w') as outfile:
+            with open("TempReport/invertedIndex_" + str(i//chunkSize) + '.json', 'w') as outfile:
                 json.dump(self._inverted_index_dict[i:i+chunkSize], outfile)
 
     #1. Offload all the information into JSON objects 50000 keys, offload information to JSON
@@ -166,11 +185,11 @@ class InvertedIndex:
 
         # print(new_data)
 
-        with open("Report/invertedIndex_" + str(self.pageNum) + ".json", "w") as outFile:
-            json.dump(self._inverted_index_dict, outFile, indent = 2)
+        with open("TempReport/invertedIndex_" + str(self.pageNum) + ".json", "w") as outFile:
+            json.dump(self._inverted_index_dict, outFile, indent=1)
 
-        with open("Report/docID_" + str(self.pageNum) + ".json", "w") as outFile:
-            json.dump(self._docID, outFile, indent = 2)
+        with open("TempReport/docID_" + str(self.pageNum) + ".json", "w") as outFile:
+            json.dump(self._docID, outFile, indent=1)
 
         self._inverted_index_dict.clear()
         self._docID.clear()
@@ -202,25 +221,78 @@ if __name__ == "__main__":
     # docId = 0 # increment whenever we add any url to urlMapper
     # urlMapper = dict() # key: docId, value: url
 
-    obj = InvertedIndex()
-    obj.extract()
-    obj.batchProcess()
+    # obj = InvertedIndex()
+    # obj.extract()
+    # obj.batchProcess()
 
-    result_index = obj._inverted_index_dict
-    #MERGE docIDs and invertexIndices
-    token_set = set(result_index.keys())
-    num_docs = len(obj._docID)
+    # result_index = obj._inverted_index_dict
+    # #MERGE docIDs and invertexIndices
+    # token_set = set(result_index.keys())
+    # num_docs = len(obj._docID)
 
-    for page in range(1, obj.pageNum):
-        with open("Report/invertedIndex_" + str(page) + ".json", "r") as oldIndex:
-            data = json.load(oldIndex)
-            for tk in data.keys():
-                token_set.add(tk)
+    # for page in range(1, obj.pageNum):
+    #     with open("TempReport/invertedIndex_" + str(page) + ".json", "r") as oldIndex:
+    #         data = json.load(oldIndex)
+    #         for tk in data.keys():
+    #             token_set.add(tk)
 
-        with open("Report/docID_" + str(page) + ".json", "r") as oldIndex:
-            data = json.load(oldIndex)
-            num_docs += len(data.keys())
+    #     with open("TempReport/docID_" + str(page) + ".json", "r") as oldIndex:
+    #         data = json.load(oldIndex)
+    #         num_docs += len(data.keys())
 
-    with open("Report/report.txt", "w") as outFile:
-        outFile.write("Number of tokens: " + str(len(token_set)) + "\n")
-        outFile.write("Number of documents: " + str(num_docs) + "\n")
+    # with open("TempReport/report.txt", "w") as outFile:
+    #     outFile.write("Number of tokens: " + str(len(token_set)) + "\n")
+    #     outFile.write("Number of documents: " + str(num_docs) + "\n")
+
+    print("Starting merging...")
+    result = dict()
+    for index in range(1, 6):
+        #Call merge json Index
+        with open("TempReport/invertedIndex_" + str(index) + ".json", "r") as oldIndex:
+            result = mergeDict(result, json.load(oldIndex))
+    with open("SeekJson/MergedIndex.json", "w") as outFile:
+        json.dump(result, outFile, indent=1)
+    print("Finished Merging...")
+
+    # result.keys() = ["0", "01", "0123"]
+
+
+    print("Create indexOfIndex...")
+    IndexOfIndex = dict()
+    for num, key in enumerate(result.keys()):
+        if key[0] not in IndexOfIndex: # key[0] gets the first character of the key
+            IndexOfIndex[key[0]] = num
+
+    with open("SeekJson/IndexOfIndex.json", "w") as outFile:
+        json.dump(IndexOfIndex, outFile, indent=1)
+    print("Finish indexOfIndex...")
+
+# --- Everybody Shines Together ---
+# ⡗⢰⣶⣶⣦⣝⢝⢕⢕⠅⡆⢕⢕⢕⢕⢕⣴⠏⣠⡶⠛⡉⡉⡛⢶⣦⡀⠐⣕⢕
+# ⡝⡄⢻⢟⣿⣿⣷⣕⣕⣅⣿⣔⣕⣵⣵⣿⣿⢠⣿⢠⣮⡈⣌⠨⠅⠹⣷⡀⢱⢕
+# ⡝⡵⠟⠈⢀⣀⣀⡀⠉⢿⣿⣿⣿⣿⣿⣿⣿⣼⣿⢈⡋⠴⢿⡟⣡⡇⣿⡇⡀⢕
+# ⡝⠁⣠⣾⠟⡉⡉⡉⠻⣦⣻⣿⣿⣿⣿⣿⣿⣿⣿⣧⠸⣿⣦⣥⣿⡇⡿⣰⢗⢄
+# ⠁⢰⣿⡏⣴⣌⠈⣌⠡⠈⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣬⣉⣉⣁⣄⢖⢕⢕⢕
+# ⡀⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵⣵⣿
+# ⡻⣄⣻⣿⣌⠘⢿⣷⣥⣿⠇⣿⣿⣿⣿⣿⣿⠛⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+# ⣷⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿⣿⠟
+# ⡕⡑⣑⣈⣻⢗⢟⢞⢝⣻⣿⣿⣿⣿⣿⣿⣿⠸⣿⠿⠃⣿⣿⣿⣿⣿⣿⡿⠁⣠
+# ⡝⡵⡈⢟⢕⢕⢕⢕⣵⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣿⣿⣿⣿⣿⠿⠋⣀⣈⠙
+
+
+
+# with open("Report/docID_1.json", "r") as oldIndex:
+#         oldIndex.seek(2)
+#         print("The read line is: " + oldIndex.readline())
+#         # data = json.load(oldIndex)
+#         # print(data)
+
+#         oldIndex.seek(1)
+
+
+
+
+# token_pos.txt
+# 1. {"someToken": [(docId, freq), ...]}
+# 2. {"otherToken": [(docId, freq), ...]}
+# ...
