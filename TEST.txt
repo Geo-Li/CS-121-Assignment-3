@@ -1,0 +1,23 @@
+Test queries:
+1. cristina lopes research and studies
+2. machine learning club involvement
+3. master of software engineering
+4. ACM how does it help with resume 
+5. how do I reverse a linked list in python
+6. reverse binary search tree priority queue linked list (Long search and not really relevance searches, but tf-idf scores)
+7. information retrieval professor 
+8. professor raymond klefstad nomination for best lecturer (One of best returns with being able to find Professor Klefstad on the Best Lecturer of 2017)
+9. professor alex thornton boo dog
+10. professor pattis ics 33 program course hard
+11. data structures 161
+12. tutor program with professor wongma and pattis (Did not find much about tutors or wongma, but might be due to the urls not being updated to include wongma)
+13. popular programming languages to start learning (Hard to find good results, but slightly improved through filtering with simHash and getting rid of low tf-idf scores during index time)
+14. how did computer science start at uci 
+15. beginner (Fastest search being one word)
+16. programming club 
+17. major specialization
+18. master degree at uci 
+19. the best lecturer at uci
+20. uci school of medicine internship program application deadline (Did poorly but improved later with the use of tf-idf scores)
+
+

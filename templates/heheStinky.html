@@ -1,0 +1,150 @@
+<style>
+    .title {
+        font-size: 30px;
+        font-family: "Helvetica", sans-serif;
+        color: #006699;
+        text-align: center;
+        margin-top: 0px;
+        margin-bottom: 0px;
+      }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        padding-top: 110px;
+        height: 100%;
+    }
+
+    .titleHeader {
+        display : flex;
+        justify-content : center;
+        padding-bottom: 16px;
+    }
+
+    body, input, button {
+        font-size: 14px;
+        font-family: arial,sans-serif;
+        color: #bdc1c6;
+        background-color : #202124;
+    }
+
+    .searchBarWrapper {
+        display: flex;
+        z-index: 3;
+        height: 44px;
+        background: #202124;
+        border: 1px solid #5f6368;
+        box-shadow: none;
+        border-radius: 24px;
+        margin: 0 auto;
+        width: 638px;
+        width: auto;
+        max-width: 584px;
+    }
+
+    .searchBarBorder {
+        flex: 1;
+        display: flex;
+        padding: 5px 8px 0 14px;
+        max-height: 45px;
+    }
+
+    .searchIcon {
+        display: flex;
+        align-items: center;
+        padding-right: 10px;
+        margin-top: 80px;
+        fill: #9aa0a6;
+        max-height: 44px;
+    }
+    
+    .searchBar {
+        background-color: transparent;
+        border: none;
+        margin: 0;
+        padding: 0;
+        color: #e8eaed;
+        word-wrap: break-word;
+        outline: none;
+        display: flex;
+        flex: 100%;
+        height: 34px;
+        width : 530px;
+        font-size: 16px;
+    }
+
+    .searchBarWrapper:hover {
+        background-color: #303134;
+        box-shadow: 0 1px 6px 0 #171717;
+        border-color: rgba(223,225,229,0);
+    }
+
+    .searchButton{
+        background-color: #303134;
+        border: 1px solid #303134;
+        border-radius: 4px;
+        color: #e8eaed;
+        font-family: arial,sans-serif;
+        font-size: 14px;
+        margin: 11px 4px;
+        padding: 0 16px;
+        line-height: 27px;
+        height: 36px;
+        min-width: 54px;
+        text-align: center;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .results {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding-top: 80px;
+        padding-bottom: 20px;
+    }
+
+</style>
+
+<!doctype html>
+    <head>
+        <title>Scuffed Google</title>
+    </head>
+    <body>
+        <div class="container">
+            <div id="logo" class="titleHeader">
+                <img alt="Google"  src="C:\Users\Gaming Pc\Desktop\CS-121\homework3" srcset="https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_272x92dp.png 1x, https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_272x92dp.png 2x" width="272" height="92"> 
+            </div>
+            <!-- <h1 class="title">121 Search Engine</h1> -->
+            <div id="searchBar" class="searchBarWrapper">
+                <form action="/search" method="POST">
+                    <div class="searchBarBorder">
+                        <div class="searchIcon">
+                            <svg focusable=​"false" xmlns=​"http:​/​/​www.w3.org/​2000/​svg" viewBox=​"0 0 24 24">​
+                                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <input class="searchBar" type="text" name="q" id="q" value="{{ query }}" />
+                        </div>
+                    </div>
+                    <center>
+                        <input class="searchButton" type="submit" value="Search" />
+                        <input class="searchButton" type="submit" value="I'm Feeling Risky"/>
+                    </center>
+                </form>
+            </div>
+            <div class="results">
+                {% if urls %}
+                    {% for url in urls %}
+                        <div class="url">
+                            <a href="{{url}}">#{{loop.index}}. {{url}}</a>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+    </body>
+</html>
